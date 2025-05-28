@@ -4,7 +4,34 @@
   <meta charset="utf-8">
   <title>성신여대 캠퍼스 지도</title>
   <style>
-    body {
+   #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: #8e44ad;
+      color: #fff;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.5s;
+    }
+    #overlay-content {
+      text-align: center;
+    }
+    #overlay h1 {
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    #overlay h1:hover {
+      color: #ffd700;
+    }
+  </style>
+</head>
+    body
+     {
       font-family: 'Arial', sans-serif;
       padding: 20px;
     }
@@ -43,6 +70,13 @@
   </style>
 </head>
 <body>
+   <div id="overlay">
+    <div id="overlay-content">
+      <h1 id="show-map-btn" style="cursor:pointer;">성신여대 지도</h1>
+    </div>
+  </div>
+    
+
   <h1>성신여대 캠퍼스 지도 🗺️</h1>
   <div class="legend">
     <span><b style="color:#8e44ad;">●</b> 건물</span>
@@ -96,7 +130,12 @@
         name: '중앙박물관',
         position: new kakao.maps.LatLng(37.591648, 127.021255),
         url: 'museum.html'
-      }
+      },
+      {
+        name: '조형 2관',
+        position: new kakao.maps.LatLng(37.592232, 127.021700),
+        url: 'johyung2.html'
+      },
     ];
 
     // 건물 마커 표시
@@ -235,6 +274,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
   </script>
+  // '성신여대 지도' 글씨 클릭하면 오버레이 숨기기
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('show-map-btn');
+  btn.addEventListener('click', function() {
+    var overlay = document.getElementById('overlay');
+    overlay.style.opacity = '0';
+    setTimeout(function() {
+      overlay.style.display = 'none';
+    }, 500); // transition 시간과 맞춤
+  });
+});
+
+
 </body>
 </html>
 
