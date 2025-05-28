@@ -1,1 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>성신여대 캠퍼스 지도</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: #8e44ad;
+      text-align: center;
+    }
+    #map {
+      width: 100%;
+      height: 500px;
+      margin-top: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .legend {
+      margin: 0 auto;
+      margin-top: 10px;
+      width: 90%;
+      max-width: 400px;
+      background: #f8f8fc;
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      font-size: 15px;
+    }
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .icon-toilet { color: #2980b9; }
+    .icon-vending { color: #e67e22; }
+    .icon-water { color: #16a085; }
+  </style>
+</head>
+<body>
+  <h1>성신여대 캠퍼스 지도 🗺️</h1>
+  <div class="legend">
+    <span><b style="color:#8e44ad;">●</b> 건물</span>
+    <span class="icon-toilet">🚻 화장실</span>
+    <span class="icon-vending">🥤 자판기</span>
+    <span class="icon-water">💧 정수기</span>
+  </div>
+  <div id="map"></div>
+  
+
+  <!-- 카카오맵 API -->
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=3bb811d698d8473f798fd1840a970d74&autoload=true"></script>
+
+  <script>
+    // 지도 생성
+    const container = document.getElementById('map');
+    const options = {
+      center: new kakao.maps.LatLng(37.591306, 127.022139),
+      level: 3
+    };
+    const map = new kakao.maps.Map(container, options);
+
+    // 건물 데이터
+    const buildings = [
+      {
+        name: '학생회관',
+        position: new kakao.maps.LatLng(37.592323, 127.021073),
+        url: 'student-hall.html'
+      },
+      {
+        name: '난향관',
+        position: new kakao.maps.LatLng(37.592253, 127.021268),
+        url: 'nanhyang.html'
+      },
+      {
+        name: '성신역사관',
+        position: new kakao.maps.LatLng(37.591599, 127.022076),
+        url: 'sungshin.html'
+      },
+      {
+        name: '중앙도서관',
+        position: new kakao.maps.LatLng(37.590830, 127.021616),
+        url: 'library.html'
+      },
+      {
+        name: '수정관',
+        position: new kakao.maps.LatLng(37.5911993, 127.0228533),
+        url: 'sujeong.html'
+      },
+      {
+        name: '중앙박물관',
+        position: new kakao.maps.LatLng(37.591648, 127.021255),
+        url: 'museum.html'
+      }
+    ];
+
+    // 건물 마커 표시
+    buildings.forEach(building => {
+      const marker = new kakao.maps.Marker({
+        map: map,
+        position: building.position,
+        title: building.name // 툴팁
+      });
+
+      const infowindow = new kakao.maps.InfoWindow({
+        content: `
+          <div style="
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid #888;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #2c3e50;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            white-space: nowrap;
+          ">
+            <b style="color:#8e44ad;">●</b> ${building.name}
+          </div>
+        `
+      });
+
+      kakao.maps.event.addListener(marker, 'mouseover', function () {
+        infowindow.open(map, marker);
+      });
+
+      kakao.maps.event.addListener(marker, 'mouseout', function () {
+        infowindow.close();
+      });
+
+      kakao.maps.event.addListener(marker, 'click', function () {
+        window.open(building.url, '_blank');
+      });
+    });
+
+    
+    // 시설별 아이콘
+    function getFacilityIcon(type) {
+      if (type === 'toilet') return '🚻';
+      if (type === 'vending') return '🥤';
+      if (type === 'water') return '💧';
+      return '';
+    }
+    function getFacilityColor(type) {
+      if (type === 'toilet') return '#2980b9';
+      if (type === 'vending') return '#e67e22';
+      if (type === 'water') return '#16a085';
+      return '#333';
+    }
+
+    // 시설 마커 표시
+    facilities.forEach(facility => {
+      const markerPosition = new kakao.maps.LatLng(facility.lat, facility.lng);
+      const marker = new kakao.maps.Marker({
+        position: markerPosition,
+        map: map,
+        title: facility.name
+      });
+
+      const infowindow = new kakao.maps.InfoWindow({
+        content: `
+          <div style="
+            padding: 7px 12px;
+            background: white;
+            border: 1px solid ${getFacilityColor(facility.type)};
+            border-radius: 8px;
+            font-size: 13px;
+            color: ${getFacilityColor(facility.type)};
+            box-shadow: 0 2px 6px rgba(0,0,0,0.13);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span>${getFacilityIcon(facility.type)}</span> ${facility.name}
+          </div>
+        `
+      });
+
+      kakao.maps.event.addListener(marker, 'mouseover', function () {
+        infowindow.open(map, marker);
+      });
+
+      kakao.maps.event.addListener(marker, 'mouseout', function () {
+        infowindow.close();
+      });
+
+      kakao.maps.event.addListener(marker, 'click', function () {
+        infowindow.open(map, marker);
+      });
+    });
+    // 기존 건물, 시설 데이터는 그대로 사용
+
+// 리스트 출력 함수
+function showFacilityList(type) {
+  const listEl = document.getElementById('facility-list');
+  let html = '';
+
+  if (type === 'building') {
+    html = `<b style="color:#8e44ad;">●</b> <b>건물 목록</b><ul style="margin:10px 0 0 0;padding:0 0 0 16px;">` +
+      buildings.map(b => `<li style="margin-bottom:4px;"><a href="${b.url}" target="_blank" style="color:#8e44ad;text-decoration:underline;">${b.name}</a></li>`).join('') +
+      `</ul>`;
+  } else {
+    // 시설별 이모지와 컬러
+    const icons = { toilet: '🚻', vending: '🥤', water: '💧' };
+    const colors = { toilet: '#2980b9', vending: '#e67e22', water: '#16a085' };
+    const names = { toilet: '화장실', vending: '자판기', water: '정수기' };
+    const filtered = facilities.filter(f => f.type === type);
+
+    html = `<span style="font-size:20px;color:${colors[type]}">${icons[type]}</span> <b style="color:${colors[type]}">${names[type]} 목록</b>`;
+    if (filtered.length === 0) {
+      html += `<div style="margin-top:10px;">등록된 ${names[type]}이 없습니다.</div>`;
+    } else {
+      html += `<ul style="margin:10px 0 0 0;padding:0 0 0 16px;">` +
+        filtered.map(f => `<li style="margin-bottom:4px;">${f.name}</li>`).join('') +
+        `</ul>`;
+    }
+  }
+  listEl.innerHTML = html;
+  listEl.style.display = 'block';
+}
+
+// 범례 버튼 클릭 이벤트
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.legend-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      showFacilityList(this.dataset.type);
+    });
+  });
+});
+
+
+  </script>
+</body>
+</html>
 
