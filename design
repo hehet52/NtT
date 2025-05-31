@@ -172,7 +172,7 @@
   <div id="overlay">
     <div id="overlay-content">
       <!-- design2.html -->
-    <img src="sungshin-logo.png">
+    <img src="https://i.namu.wiki/i/G3hc2h4AbOwG98IZSnz_07JRjDFciIPEtzIABy4KJhTrpIMCbSZtq8vey74byVrgouvCn-2iUbpBTPhdVRf46A.svg", width= "80%">
       <h1 id="show-map-btn">성신여대 지도</h1>
     </div>
   </div>
