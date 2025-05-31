@@ -4,34 +4,71 @@
   <meta charset="utf-8">
   <title>성신여대 캠퍼스 지도</title>
   <style>
-   #overlay {
+    #overlay {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: #8e44ad;
-      color: #fff;
+      background: #fff;
+      color: #8e44ad;
       z-index: 9999;
       display: flex;
       justify-content: center;
       align-items: center;
       transition: opacity 0.5s;
+      overflow: hidden;
     }
     #overlay-content {
+      position: relative;
+      z-index: 1;
       text-align: center;
+      width: 100vw;
+      max-width: 500px;
+      margin: 0 auto;
+      height: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #overlay-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 180px;
+      height: auto;
+      transform: translate(-50%, -50%);
+      opacity: 1;    /* 불투명도 100% */
+      z-index: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+    #show-map-btn {
+      position: relative;
+      z-index: 1;
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      color: #8e44ad;
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      margin-top: 40px;
+    }
+    #show-map-btn:hover {
+      color: #5e3370;
     }
     #overlay h1 {
       font-size: 2.5rem;
       letter-spacing: 2px;
       cursor: pointer;
+      color: #8e44ad;
       transition: color 0.2s;
     }
     #overlay h1:hover {
-      color: #ffd700;
+      color: #5e3370;
     }
-  </style>
-</head>
-    body
-     {
+
+    body {
       font-family: 'Arial', sans-serif;
       padding: 20px;
     }
@@ -45,6 +82,7 @@
       margin-top: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      position: relative;
     }
     .legend {
       margin: 0 auto;
@@ -67,15 +105,92 @@
     .icon-toilet { color: #2980b9; }
     .icon-vending { color: #e67e22; }
     .icon-water { color: #16a085; }
+
+    /* 문의 버튼 우하단 고정 */
+    #floating-contact-btn {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      z-index: 1001;
+      padding: 12px 28px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      background: #8e44ad;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(142,68,173,0.12);
+      transition: background 0.2s;
+      display: none; /* 처음엔 숨김, 오버레이가 사라지면 보임 */
+    }
+    #floating-contact-btn:hover {
+      background: #5e3370;
+    }
+
+    /* 문의 모달 */
+    #contact-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.35);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    #contact-modal .modal-content {
+      background: #fff;
+      color: #8e44ad;
+      border-radius: 12px;
+      min-width: 320px;
+      max-width: 90vw;
+      padding: 32px 28px 24px 28px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      position: relative;
+      text-align: center;
+    }
+    #close-modal {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      color: #8e44ad;
+      cursor: pointer;
+      line-height: 1;
+    }
+    #contact-modal .modal-message {
+      font-size: 1.15rem;
+      margin-top: 40px;
+      margin-bottom: 16px;
+      color: black;
+    }
   </style>
 </head>
 <body>
-   <div id="overlay">
+  <div id="overlay">
     <div id="overlay-content">
-      <h1 id="show-map-btn" style="cursor:pointer;">성신여대 지도</h1>
+      <!-- design2.html -->
+    <img src="sungshin-logo.png">
+      <h1 id="show-map-btn">성신여대 지도</h1>
     </div>
   </div>
-    
+
+  <!-- 문의 모달 -->
+  <div id="contact-modal">
+    <div class="modal-content">
+      <button id="close-modal">✖</button>
+      <div class="modal-message">
+        문의 사항이나 추가되었으면 하는 점이 있으시다면<br>
+        편하게 연락주세요.<br><br>
+        <b>20251253@sungshin.ac.kr</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- 문의 버튼 (지도 우하단에 위치) -->
+  <button id="floating-contact-btn">문의</button>
 
   <h1>성신여대 캠퍼스 지도 🗺️</h1>
   <div class="legend">
@@ -85,7 +200,6 @@
     <span class="icon-water">💧 정수기</span>
   </div>
   <div id="map"></div>
-  
 
   <!-- 카카오맵 API -->
   <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=3bb811d698d8473f798fd1840a970d74&autoload=true"></script>
@@ -143,7 +257,7 @@
       const marker = new kakao.maps.Marker({
         map: map,
         position: building.position,
-        title: building.name // 툴팁
+        title: building.name
       });
 
       const infowindow = new kakao.maps.InfoWindow({
@@ -176,7 +290,6 @@
       });
     });
 
-    
     // 시설별 아이콘
     function getFacilityIcon(type) {
       if (type === 'toilet') return '🚻';
@@ -190,7 +303,12 @@
       if (type === 'water') return '#16a085';
       return '#333';
     }
-
+    const facilities = [
+      { type: 'toilet', name: '학생회관 1층 화장실', lat: 37.592320, lng: 127.021120 },
+      { type: 'toilet', name: '난향관 2층 화장실', lat: 37.592260, lng: 127.021320 },
+      { type: 'vending', name: '중앙도서관 1층 자판기', lat: 37.590850, lng: 127.021650 },
+      { type: 'water', name: '수정관 1층 정수기', lat: 37.591210, lng: 127.022870 }
+    ];
     // 시설 마커 표시
     facilities.forEach(facility => {
       const markerPosition = new kakao.maps.LatLng(facility.lat, facility.lng);
@@ -232,61 +350,30 @@
         infowindow.open(map, marker);
       });
     });
-    // 기존 건물, 시설 데이터는 그대로 사용
 
-// 리스트 출력 함수
-function showFacilityList(type) {
-  const listEl = document.getElementById('facility-list');
-  let html = '';
+    // 문의 버튼, 모달, 오버레이 제어
+    document.addEventListener('DOMContentLoaded', function() {
+      // 오버레이 '성신여대 지도' 클릭 시 오버레이 숨기고 문의 버튼 보이기
+      document.getElementById('show-map-btn').addEventListener('click', function() {
+        var overlay = document.getElementById('overlay');
+        overlay.style.opacity = '0';
+        setTimeout(function() {
+          overlay.style.display = 'none';
+          document.getElementById('floating-contact-btn').style.display = 'block';
+        }, 500);
+      });
 
-  if (type === 'building') {
-    html = `<b style="color:#8e44ad;">●</b> <b>건물 목록</b><ul style="margin:10px 0 0 0;padding:0 0 0 16px;">` +
-      buildings.map(b => `<li style="margin-bottom:4px;"><a href="${b.url}" target="_blank" style="color:#8e44ad;text-decoration:underline;">${b.name}</a></li>`).join('') +
-      `</ul>`;
-  } else {
-    // 시설별 이모지와 컬러
-    const icons = { toilet: '🚻', vending: '🥤', water: '💧' };
-    const colors = { toilet: '#2980b9', vending: '#e67e22', water: '#16a085' };
-    const names = { toilet: '화장실', vending: '자판기', water: '정수기' };
-    const filtered = facilities.filter(f => f.type === type);
+      // 문의 버튼 클릭 시 모달 띄우기
+      document.getElementById('floating-contact-btn').addEventListener('click', function() {
+        document.getElementById('contact-modal').style.display = 'flex';
+      });
 
-    html = `<span style="font-size:20px;color:${colors[type]}">${icons[type]}</span> <b style="color:${colors[type]}">${names[type]} 목록</b>`;
-    if (filtered.length === 0) {
-      html += `<div style="margin-top:10px;">등록된 ${names[type]}이 없습니다.</div>`;
-    } else {
-      html += `<ul style="margin:10px 0 0 0;padding:0 0 0 16px;">` +
-        filtered.map(f => `<li style="margin-bottom:4px;">${f.name}</li>`).join('') +
-        `</ul>`;
-    }
-  }
-  listEl.innerHTML = html;
-  listEl.style.display = 'block';
-}
-
-// 범례 버튼 클릭 이벤트
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.legend-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      showFacilityList(this.dataset.type);
+      // 모달 닫기(엑스) 클릭 시 모달 닫기
+      document.getElementById('close-modal').addEventListener('click', function() {
+        document.getElementById('contact-modal').style.display = 'none';
+      });
     });
-  });
-});
-
-
   </script>
-  // '성신여대 지도' 글씨 클릭하면 오버레이 숨기기
-document.addEventListener('DOMContentLoaded', function() {
-  var btn = document.getElementById('show-map-btn');
-  btn.addEventListener('click', function() {
-    var overlay = document.getElementById('overlay');
-    overlay.style.opacity = '0';
-    setTimeout(function() {
-      overlay.style.display = 'none';
-    }, 500); // transition 시간과 맞춤
-  });
-});
-
-
 </body>
 </html>
 
