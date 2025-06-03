@@ -112,9 +112,7 @@
         name: '행정관&중앙박물관',
         position: new kakao.maps.LatLng(37.591536, 127.021223),
         facilities: {
-          toilet: ['1층 거울 앞', '2층 202호 옆', '3층 301호 옆', '4층 402호 옆'],
-          vending: [],
-          water: []
+          toilet: ['1층 거울 앞', '2층 202호 옆', '3층 301호 옆', '4층 402호 옆']
         }
       },
       {
@@ -131,7 +129,6 @@
         position: new kakao.maps.LatLng(37.591978, 127.022191),
         facilities: {
           toilet: ['1층 사물함 옆', '2층 사물함 옆'],
-          vending: [],
           water: ['1층 101호 앞', '2층 209호 앞', '3층 312호 옆', '4층', '5층 528호 옆']
         }
       },
@@ -158,7 +155,6 @@
         position: new kakao.maps.LatLng(37.590830, 127.021616),
         facilities: {
           toilet: ['1층 엘리베이터 옆', '2층 엘리베이터 옆(수하랑 앞)', '3층 엘리베이터 옆', '4층 엘리베이터 옆(수하랑 앞)', '5층 엘리베이터 옆', '6층 엘리베이터 옆(수하랑 앞)', '7층 엘리베이터 옆(수하랑 앞)'],
-          vending: [],
           water: ['1층 엘리베이터 옆', '2층 엘리베이터 옆', '3층 엘리베이터 옆', '4층 엘리베이터 옆', '5층 엘리베이터 옆', '6층 엘리베이터 옆', '7층 엘리베이터 옆']
         }
       },
@@ -167,13 +163,82 @@
         position: new kakao.maps.LatLng(37.590600, 127.021900),
         facilities: {
           toilet: ['2층 정수기 앞', '센터입구 옆'],
-          vending: [],
           water: ['휘티니스 센터 입구']
         }
       }
     ];
 
     let openInfoWindow = null;
+        let overlayMarkers = [];
+    let activeType = null;
+
+    function showOverlay(type) {
+      if (activeType === type) {
+        overlayMarkers.forEach(marker => marker.setMap(null));
+        overlayMarkers = [];
+        activeType = null;
+        return;
+      }
+
+      overlayMarkers.forEach(marker => marker.setMap(null));
+      overlayMarkers = [];
+
+      let targetBuildings = [];
+      let icon = '';
+      if (type === 'toilet') {
+        targetBuildings = buildings.filter(b => b.facilities.toilet && b.facilities.toilet.length > 0);
+        icon = '🚻';
+      } else if (type === 'vending') {
+        targetBuildings = buildings.filter(b => b.facilities.vending && b.facilities.vending.length > 0);
+        icon = '🥤';
+      } else if (type === 'water') {
+        targetBuildings = buildings.filter(b => b.facilities.water && b.facilities.water.length > 0);
+        icon = '💧';
+      }
+
+      targetBuildings.forEach(building => {
+        const content = `<div style="font-size: 24px; transform: translate(-50%, -100%);">${icon}</div>`;
+        const overlay = new kakao.maps.CustomOverlay({
+          content: content,
+          position: building.position
+        });
+        overlay.setMap(map);
+        overlayMarkers.push(overlay);
+      });
+
+      activeType = type;
+    }
+
+    document.getElementById('btn-toilet').addEventListener('click', () => showOverlay('toilet'));
+    document.getElementById('btn-vending').addEventListener('click', () => showOverlay('vending'));
+    document.getElementById('btn-water').addEventListener('click', () => showOverlay('water'));
+
+    function showFacility(buildingName, type) {
+      const building = buildings.find(b => b.name === buildingName);
+      const listDiv = document.getElementById(`list-${buildingName}`);
+      if (!building || !listDiv) return;
+
+      const items = building.facilities[type] || [];
+      if (items.length === 0) {
+        listDiv.innerHTML = `<p style="margin-top:5px;">정보 없음</p>`;
+        return;
+      }
+
+      let html = '<ul style="margin:5px 0; padding-left:16px;">';
+      items.forEach(loc => {
+        html += `<li>${loc}</li>`;
+      });
+      html += '</ul>';
+
+      listDiv.innerHTML = html;
+    }
+
+    function closeInfoWindow() {
+      if (openInfoWindow) {
+        openInfoWindow.setMap(null);
+        openInfoWindow = null;
+      }
+    }
 
     buildings.forEach(building => {
       const marker = new kakao.maps.Marker({
@@ -203,74 +268,6 @@
         openInfoWindow = infoWindow;
       });
     });
-        // 이모지 마커 표시 (상단 버튼)
-    let overlayMarkers = [];
-    const toiletBuildings = ['난향관', '행정관&중앙박물관', '조형 2관', '음악관', '수정관', '성신역사관', '중앙도서관', '체육관'];
-    const vendingBuildings = ['난향관', '조형 2관', '수정관', '성신역사관'];
-    const waterBuildings = ['난향관', '조형 2관', '음악관', '수정관', '성신역사관', '중앙도서관', '체육관'];
-
-    function showOverlay(type) {
-      overlayMarkers.forEach(marker => marker.setMap(null));
-      overlayMarkers = [];
-
-      let targetBuildings = [];
-      let icon = '';
-      if (type === 'toilet') {
-        targetBuildings = toiletBuildings;
-        icon = '🚻';
-      } else if (type === 'vending') {
-        targetBuildings = vendingBuildings;
-        icon = '🥤';
-      } else if (type === 'water') {
-        targetBuildings = waterBuildings;
-        icon = '💧';
-      }
-
-      buildings.forEach(building => {
-        if (targetBuildings.includes(building.name)) {
-          const content = `<div style="font-size: 24px; transform: translate(-50%, -100%);">${icon}</div>`;
-          const overlay = new kakao.maps.CustomOverlay({
-            content: content,
-            position: building.position
-          });
-          overlay.setMap(map);
-          overlayMarkers.push(overlay);
-        }
-      });
-    }
-
-    document.getElementById('btn-toilet').addEventListener('click', () => showOverlay('toilet'));
-    document.getElementById('btn-vending').addEventListener('click', () => showOverlay('vending'));
-    document.getElementById('btn-water').addEventListener('click', () => showOverlay('water'));
-
-    // 시설 목록 표시 함수
-    function showFacility(buildingName, type) {
-      const building = buildings.find(b => b.name === buildingName);
-      const listDiv = document.getElementById(`list-${buildingName}`);
-      if (!building || !listDiv) return;
-
-      const items = building.facilities[type];
-      if (!items || items.length === 0) {
-        listDiv.innerHTML = `<p style="margin-top:5px;">정보 없음</p>`;
-        return;
-      }
-
-      let html = '<ul style="margin:5px 0; padding-left:16px;">';
-      items.forEach(loc => {
-        html += `<li>${loc}</li>`;
-      });
-      html += '</ul>';
-
-      listDiv.innerHTML = html;
-    }
-
-    // 뒤로가기 버튼 함수
-    function closeInfoWindow() {
-      if (openInfoWindow) {
-        openInfoWindow.setMap(null);
-        openInfoWindow = null;
-      }
-    }
   </script>
 </body>
 </html>
